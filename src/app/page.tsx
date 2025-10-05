@@ -50,6 +50,15 @@ export default function Home() {
             Read our docs
           </a>
         </div>
+        <div className="prose max-w-none">
+          <h1>Tailwind v4 OK?</h1>
+          <p>typography が効いていれば見た目が整います。</p>
+          <ul>
+            <li>見出しサイズ・行間</li>
+            <li>段落の余白</li>
+            <li>リストのスタイル</li>
+          </ul>
+        </div>
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
         <a

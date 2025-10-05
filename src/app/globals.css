@@ -1,9 +1,12 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
+
+.prose :where(img):not(:where([class~="not-prose"] *)) { margin: 0; }
 
 @theme inline {
   --color-background: var(--background);
