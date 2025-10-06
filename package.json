@@ -10,11 +10,9 @@
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",
-    "ai": "^5.0.60",
     "gray-matter": "^4.0.3",
     "next": "15.5.4",
     "next-mdx-remote": "^5.0.0",
-    "openai": "^6.1.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "remark": "^15.0.1",
