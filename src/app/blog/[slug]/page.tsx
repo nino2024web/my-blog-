@@ -3,6 +3,7 @@ import { getPost, listPosts } from "@/lib/mdx";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
+import * as Mdx from "@/components/mdx";
 
 export const revalidate = 60;
 
@@ -16,9 +17,11 @@ export default async function PostPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params; // ← まず await
+  const { slug } = await params;
   const post = await getPost(slug);
   if (!post || post.meta.published === false) return notFound();
+
+  const components = Object.fromEntries(Object.entries(Mdx));
 
   return (
     <main className="mx-auto max-w-3xl p-6">
@@ -28,6 +31,7 @@ export default async function PostPage({
         <MDXRemote
           source={post.content}
           options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+          components={components as any}
         />
       </article>
     </main>
