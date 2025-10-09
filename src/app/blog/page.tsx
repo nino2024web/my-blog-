@@ -1,5 +1,5 @@
+import Link from "next/link";
 import { listPosts } from "@/lib/mdx";
-import Ad from "@/components/mdx/Ad";
 
 export const revalidate = 60;
 export const metadata = { title: "Blog" };
@@ -7,11 +7,24 @@ export const metadata = { title: "Blog" };
 type SP = Promise<Record<string, string | string[] | undefined>>;
 const PAGE_SIZE = 10;
 
-const isBook = (p: any) =>
+type PostMeta = {
+  title?: string;
+  description?: string;
+  date?: string;
+  type?: string;
+  tags?: string[];
+};
+
+type Post = {
+  slug: string;
+  meta: PostMeta;
+};
+
+const isBook = (p: Post) =>
   p.meta?.type === "book" ||
   (Array.isArray(p.meta?.tags) && p.meta.tags.includes("book"));
 
-const toCategories = (posts: any[]) => {
+const toCategories = (posts: Post[]) => {
   const m = new Map<string, number>();
   for (const p of posts)
     for (const t of Array.isArray(p.meta?.tags) ? p.meta.tags : [])
@@ -53,18 +66,20 @@ export default async function BlogIndex({
 
   if (!filtered.length) {
     return (
-      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6">
-        <h1 className="text-2xl font-bold mb-6">Blog</h1>
-        {q ? (
-          <p className="text-gray-500">
-            “{q}” に一致する記事はありません。
-            <a className="underline" href="/blog">
-              クリア
-            </a>
-          </p>
-        ) : (
-          <p className="text-gray-500">まだ記事がありません。</p>
-        )}
+      <main className="bg-slate-100 dark:bg-zinc-950 min-h-screen">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
+          <h1 className="text-2xl font-bold mb-6">Blog</h1>
+          {q ? (
+            <p className="text-gray-500">
+              “{q}” に一致する記事はありません。
+              <a className="underline" href="/blog">
+                クリア
+              </a>
+            </p>
+          ) : (
+            <p className="text-gray-500">まだ記事がありません。</p>
+          )}
+        </div>
       </main>
     );
   }
@@ -77,14 +92,13 @@ export default async function BlogIndex({
 
   const latest5 = filtered.slice(0, 5);
   const book5 = filtered.filter(isBook).slice(0, 5);
-  const categories = toCategories(filtered);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6">
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-        <section className="space-y-8">
-          <article className="rounded-2xl border p-6 shadow-sm bg-white/70 dark:bg-black/30">
-            <a href={`/blog/${featured.slug}`} className="block group">
+    <main className="bg-slate-100 dark:bg-zinc-950 min-h-screen">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid gap-8 lg:grid-cols-[1fr_320px]">
+        <section className="space-y-8 bg-white dark:bg-zinc-900 p-8 shadow-sm">
+          <article className="space-y-3">
+            <Link href={`/blog/${featured.slug}`} className="block group">
               <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight group-hover:underline">
                 {featured.meta.title ?? featured.slug}
               </h2>
@@ -99,25 +113,25 @@ export default async function BlogIndex({
                   {featured.meta.tags.map((t: string) => (
                     <span
                       key={t}
-                      className="rounded-full border px-2 py-0.5 text-xs text-gray-600"
+                      className="bg-gray-200 px-2 py-0.5 text-xs text-gray-700 dark:bg-zinc-800 dark:text-gray-200"
                     >
                       #{t}
                     </span>
                   ))}
                 </div>
               )}
-            </a>
+            </Link>
           </article>
 
-          <ul className="grid gap-6">
+          <ul className="space-y-6">
             {pageItems.map((p) => (
-              <li key={p.slug} className="border-b pb-4">
-                <a
+              <li key={p.slug} className="pb-4">
+                <Link
                   href={`/blog/${p.slug}`}
                   className="text-lg font-semibold hover:underline"
                 >
                   {p.meta.title ?? p.slug}
-                </a>
+                </Link>
                 <div className="text-sm text-gray-500">{p.meta.date}</div>
                 {p.meta.description && (
                   <p className="mt-1 text-gray-700 dark:text-gray-300">
@@ -130,56 +144,69 @@ export default async function BlogIndex({
 
           {totalPages > 1 && (
             <nav
-              className="mt-4 flex items-center justify-center gap-2"
+              className="mt-4 flex items-center justify-center gap-3 text-sm"
               aria-label="ページネーション"
             >
-              <a
-                href={`/blog?page=${Math.max(1, page - 1)}${
-                  q ? `&q=${encodeURIComponent(q)}` : ""
-                }`}
-                className="rounded border px-3 py-1 text-sm aria-disabled:pointer-events-none aria-disabled:opacity-50"
-                aria-disabled={page === 1}
-              >
-                前へ
-              </a>
-              <span className="text-sm text-gray-600">
+              {page > 1 ? (
+                <Link
+                  href={`/blog?page=${Math.max(1, page - 1)}${
+                    q ? `&q=${encodeURIComponent(q)}` : ""
+                  }`}
+                  className="bg-gray-200 px-4 py-2 text-gray-700 transition hover:bg-gray-300 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
+                >
+                  前へ
+                </Link>
+              ) : (
+                <span className="bg-gray-200 px-4 py-2 text-gray-400 dark:bg-zinc-800 dark:text-zinc-600">
+                  前へ
+                </span>
+              )}
+              <span className="text-gray-600 dark:text-gray-300">
                 {page} / {totalPages}
               </span>
-              <a
-                href={`/blog?page=${Math.min(totalPages, page + 1)}${
-                  q ? `&q=${encodeURIComponent(q)}` : ""
-                }`}
-                className="rounded border px-3 py-1 text-sm aria-disabled:pointer-events-none aria-disabled:opacity-50"
-                aria-disabled={page === totalPages}
+              {page < totalPages ? (
+                <Link
+                  href={`/blog?page=${Math.min(totalPages, page + 1)}${
+                    q ? `&q=${encodeURIComponent(q)}` : ""
+                  }`}
+                  className="bg-gray-200 px-4 py-2 text-gray-700 transition hover:bg-gray-300 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
+                >
+                  次へ
+                </Link>
+              ) : (
+                <span className="bg-gray-200 px-4 py-2 text-gray-400 dark:bg-zinc-800 dark:text-zinc-600">
+                  次へ
+                </span>
+              )}
+              <Link
+                href="/blog?page=1"
+                className="ml-3 text-gray-700 underline dark:text-gray-200"
               >
-                次へ
-              </a>
-              <a href="/blog?page=1" className="ml-3 text-sm underline">
                 全ページ一覧
-              </a>
+              </Link>
             </nav>
           )}
         </section>
 
-        <aside className="space-y-6">
-          <section className="rounded-xl border p-4">
-            <h3 className="mb-3 text-sm font-semibold tracking-wide text-gray-600">
+        <aside className="bg-gray-100 p-6 text-sm text-gray-800 dark:bg-zinc-900 dark:text-gray-200">
+          <section className="space-y-3">
+            <h3 className="text-xs font-semibold tracking-wide text-gray-600 dark:text-gray-400">
               最新の記事
             </h3>
             <ul className="space-y-2">
               {latest5.map((p) => (
-                <li key={p.slug} className="text-sm">
-                  <a href={`/blog/${p.slug}`} className="hover:underline">
+                <li key={p.slug}>
+                  <Link href={`/blog/${p.slug}`} className="hover:underline">
                     {p.meta.title ?? p.slug}
-                  </a>
+                  </Link>
                   <div className="text-xs text-gray-500">{p.meta.date}</div>
                 </li>
               ))}
             </ul>
           </section>
 
-          <section className="rounded-xl border p-4">
-            <h3 className="mb-3 text-sm font-semibold tracking-wide text-gray-600">
+          <section className="space-y-3 pt-6">
+            <h3 className="text-xs font-semibold tracking-wide text-gray-600 dark:text-gray-400">
               最近紹介した本
             </h3>
             {book5.length === 0 ? (
@@ -187,36 +214,34 @@ export default async function BlogIndex({
             ) : (
               <ul className="space-y-2">
                 {book5.map((p) => (
-                  <li key={p.slug} className="text-sm">
-                    <a href={`/blog/${p.slug}`} className="hover:underline">
+                  <li key={p.slug}>
+                    <Link href={`/blog/${p.slug}`} className="hover:underline">
                       {p.meta.title ?? p.slug}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
             )}
           </section>
 
-          <section className="rounded-xl border p-4">
-            <h3 className="mb-3 text-sm font-semibold tracking-wide text-gray-600">
+          <section className="space-y-3 pt-6">
+            <h3 className="text-xs font-semibold tracking-wide text-gray-600 dark:text-gray-400">
               カテゴリー
             </h3>
             <div className="flex flex-wrap gap-2">
               {toCategories(filtered)
                 .slice(0, 50)
                 .map(([tag, count]) => (
-                  <a
+                  <Link
                     key={tag}
                     href={`/blog?q=${encodeURIComponent(tag)}`}
-                    className="rounded-full border px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-50"
+                    className="bg-white px-2 py-0.5 text-xs text-gray-700 transition hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-200 dark:hover:bg-zinc-700"
                   >
                     #{tag} <span className="text-gray-400">({count})</span>
-                  </a>
+                  </Link>
                 ))}
             </div>
           </section>
-
-          <section className="rounded-xl border p-4"></section>
         </aside>
       </div>
     </main>

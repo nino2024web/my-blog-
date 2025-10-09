@@ -9,15 +9,24 @@ published: true
 本文。途中で <Big color="rose" size="3xl">強調ポイント</Big> を挟む。
 
 <Callout type="warn" title="注意">
-環境によって挙動が異なる箇所。必ず検証してください。
+  環境によって挙動が異なる箇所。必ず検証してください。
 </Callout>
 
 <TwoCol
-  left={<ul><li>箇条書き左</li><li>もう1項目</li></ul>}
+  left={
+    <ul>
+      <li>箇条書き左</li>
+      <li>もう1項目</li>
+    </ul>
+  }
   right={<p>右カラムに説明文。画像でもOK。</p>}
 />
 
-<Figure src="/images/your-slug/diagram.png" alt="図解" caption="システム全体図" />
+<Figure
+  src="/images/your-slug/diagram.png"
+  alt="図解"
+  caption="システム全体図"
+/>
 
 <YouTube id="dQw4w9WgXcQ" />
 
