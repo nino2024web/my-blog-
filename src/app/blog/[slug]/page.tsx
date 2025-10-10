@@ -1,7 +1,7 @@
 // src/app/blog/[slug]/page.tsx
 import { getPost, listPosts } from "@/lib/mdx";
 import { notFound } from "next/navigation";
-import { MDXRemote } from "next-mdx-remote/rsc";
+import { MDXRemote, type MDXRemoteProps } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import * as Mdx from "@/components/mdx";
 
@@ -21,7 +21,7 @@ export default async function PostPage({
   const post = await getPost(slug);
   if (!post || post.meta.published === false) return notFound();
 
-  const components = Object.fromEntries(Object.entries(Mdx));
+  const components = Mdx as unknown as MDXRemoteProps["components"];
 
   return (
     <main className="mx-auto max-w-3xl p-6">
@@ -31,7 +31,7 @@ export default async function PostPage({
         <MDXRemote
           source={post.content}
           options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
-          components={components as any}
+          components={components}
         />
       </article>
     </main>

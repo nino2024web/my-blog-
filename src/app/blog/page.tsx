@@ -1,24 +1,14 @@
 import Link from "next/link";
-import { listPosts } from "@/lib/mdx";
+import { MDXRemote, type MDXRemoteProps } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
+import * as Mdx from "@/components/mdx";
+import { listPosts, type Post } from "@/lib/mdx";
 
 export const revalidate = 60;
 export const metadata = { title: "Blog" };
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 const PAGE_SIZE = 10;
-
-type PostMeta = {
-  title?: string;
-  description?: string;
-  date?: string;
-  type?: string;
-  tags?: string[];
-};
-
-type Post = {
-  slug: string;
-  meta: PostMeta;
-};
 
 const isBook = (p: Post) =>
   p.meta?.type === "book" ||
@@ -42,11 +32,11 @@ export default async function BlogIndex({
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
   const page = Math.max(1, Number(sp.page ?? 1));
-  const posts = (await listPosts()).sort(
-    (a: any, b: any) =>
-      new Date(b.meta?.date ?? 0).getTime() -
-      new Date(a.meta?.date ?? 0).getTime()
-  );
+  const posts = (await listPosts()).sort((a, b) => {
+    const dateA = a.meta.date ? new Date(a.meta.date).getTime() : 0;
+    const dateB = b.meta.date ? new Date(b.meta.date).getTime() : 0;
+    return dateB - dateA;
+  });
 
   const filtered = q
     ? posts.filter((p) => {
@@ -72,9 +62,9 @@ export default async function BlogIndex({
           {q ? (
             <p className="text-gray-500">
               “{q}” に一致する記事はありません。
-              <a className="underline" href="/blog">
+              <Link className="underline" href="/blog">
                 クリア
-              </a>
+              </Link>
             </p>
           ) : (
             <p className="text-gray-500">まだ記事がありません。</p>
@@ -92,24 +82,30 @@ export default async function BlogIndex({
 
   const latest5 = filtered.slice(0, 5);
   const book5 = filtered.filter(isBook).slice(0, 5);
+  const components = Mdx as unknown as MDXRemoteProps["components"];
 
   return (
     <main className="bg-slate-100 dark:bg-zinc-950 min-h-screen">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid gap-8 lg:grid-cols-[1fr_320px]">
         <section className="space-y-8 bg-white dark:bg-zinc-900 p-8 shadow-sm">
-          <article className="space-y-3">
-            <Link href={`/blog/${featured.slug}`} className="block group">
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight group-hover:underline">
-                {featured.meta.title ?? featured.slug}
+          <article className="space-y-6">
+            <header className="space-y-3">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                <Link
+                  href={`/blog/${featured.slug}`}
+                  className="hover:underline"
+                >
+                  {featured.meta.title ?? featured.slug}
+                </Link>
               </h2>
-              <p className="mt-1 text-sm text-gray-500">{featured.meta.date}</p>
+              <p className="text-sm text-gray-500">{featured.meta.date}</p>
               {featured.meta.description && (
-                <p className="mt-3 text-gray-700 dark:text-gray-300">
+                <p className="text-gray-700 dark:text-gray-300">
                   {featured.meta.description}
                 </p>
               )}
               {Array.isArray(featured.meta.tags) && (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                   {featured.meta.tags.map((t: string) => (
                     <span
                       key={t}
@@ -120,7 +116,24 @@ export default async function BlogIndex({
                   ))}
                 </div>
               )}
-            </Link>
+            </header>
+
+            <div className="prose max-w-none dark:prose-invert">
+              <MDXRemote
+                source={featured.content}
+                options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+                components={components}
+              />
+            </div>
+
+            <div>
+              <Link
+                href={`/blog/${featured.slug}`}
+                className="inline-flex items-center text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400"
+              >
+                続きを読む
+              </Link>
+            </div>
           </article>
 
           <ul className="space-y-6">

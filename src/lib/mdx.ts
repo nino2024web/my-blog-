@@ -10,6 +10,7 @@ export type Post = {
   meta: {
     title: string;
     date: string;
+    type?: string;
     tags?: string[];
     description?: string;
     published: boolean;
