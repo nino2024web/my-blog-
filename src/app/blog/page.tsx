@@ -2,25 +2,14 @@ import Link from "next/link";
 import { MDXRemote, type MDXRemoteProps } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import * as Mdx from "@/components/mdx";
-import { listPosts, type Post } from "@/lib/mdx";
+import { listPosts } from "@/lib/mdx";
+import { isBook, toCategories } from "./sidebar-utils";
 
 export const revalidate = 60;
 export const metadata = { title: "Blog" };
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 const PAGE_SIZE = 10;
-
-const isBook = (p: Post) =>
-  p.meta?.type === "book" ||
-  (Array.isArray(p.meta?.tags) && p.meta.tags.includes("book"));
-
-const toCategories = (posts: Post[]) => {
-  const m = new Map<string, number>();
-  for (const p of posts)
-    for (const t of Array.isArray(p.meta?.tags) ? p.meta.tags : [])
-      m.set(t, (m.get(t) ?? 0) + 1);
-  return [...m.entries()].sort((a, b) => b[1] - a[1]);
-};
 
 const normalize = (s: string) => s.toLowerCase();
 
@@ -83,6 +72,8 @@ export default async function BlogIndex({
   const latest5 = filtered.slice(0, 5);
   const book5 = filtered.filter(isBook).slice(0, 5);
   const components = Mdx as unknown as MDXRemoteProps["components"];
+  const featuredDate =
+    typeof featured.meta.date === "string" ? featured.meta.date : "";
 
   return (
     <main className="bg-slate-100 dark:bg-zinc-950 min-h-screen">
@@ -90,15 +81,19 @@ export default async function BlogIndex({
         <section className="space-y-8 bg-white dark:bg-zinc-900 p-8 shadow-sm">
           <article className="space-y-6">
             <header className="space-y-3">
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            {featuredDate && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <time dateTime={featuredDate}>{featuredDate}</time>
+                </p>
+              )}
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
                 <Link
                   href={`/blog/${featured.slug}`}
                   className="hover:underline"
                 >
                   {featured.meta.title ?? featured.slug}
                 </Link>
-              </h2>
-              <p className="text-sm text-gray-500">{featured.meta.date}</p>
+             </h1>
               {featured.meta.description && (
                 <p className="text-gray-700 dark:text-gray-300">
                   {featured.meta.description}

@@ -3,7 +3,6 @@ import { useState } from "react";
 
 export default function Login() {
   const [secret, setSecret] = useState("");
-  const [err, setErr] = useState("");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,7 +15,7 @@ export default function Login() {
       location.href =
         new URLSearchParams(location.search).get("next") ?? "/write";
     } else {
-      setErr("認証に失敗しました");
+      alert("パスフレーズが正しくありません");
     }
   };
 
@@ -31,11 +30,10 @@ export default function Login() {
           onChange={(e) => setSecret(e.target.value)}
           placeholder="パスフレーズ"
         />
-        <button className="w-full bg-black text-white rounded p-2">
+        <button className="w-full bg-black hover:bg-gray-800 transition-colors text-white rounded p-2">
           ログイン
         </button>
       </form>
-      {err && <p className="text-red-500">{err}</p>}
     </main>
   );
 }
